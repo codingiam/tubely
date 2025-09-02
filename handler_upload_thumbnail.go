@@ -50,6 +50,16 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 
 	contentType := header.Header.Get("Content-Type")
 
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid Content-Type", err)
+		return
+	}
+	if mediaType != "image/jpeg" && mediaType != "image/png" {
+		respondWithError(w, http.StatusBadRequest, "Invalid file type", nil)
+		return
+	}
+
 	thumb, err := io.ReadAll(file)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Unable to read file", err)
@@ -67,7 +77,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	exts, err := mime.ExtensionsByType(contentType)
+	exts, err := mime.ExtensionsByType(mediaType)
 	if err != nil || len(exts) == 0 {
 		respondWithError(w, http.StatusBadRequest, "Unable to detect thumbnail type", err)
 		return
